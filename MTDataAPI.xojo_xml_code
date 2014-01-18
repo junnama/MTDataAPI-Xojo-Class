@@ -1,0 +1,811 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RBProject version="2013r4.1" FormatVersion="2" MinIDEVersion="20070100">
+<block type="Module" ID="764900430">
+ <ObjName>MTDataAPI</ObjName>
+ <ObjContainerID>0</ObjContainerID>
+ <IsClass>1</IsClass>
+ <ItemFlags>1</ItemFlags>
+ <IsInterface>0</IsInterface>
+ <Compatibility></Compatibility>
+ <Method>
+  <ItemName>Authentication</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function Authentication() As String</SourceLine>
+   <SourceLine>Dim Endpoint As String = Self.CGIPath + Self.DataAPIScript + "/" + Self.APIVersion + "/authentication"</SourceLine>
+   <SourceLine>Dim Auth As Dictionary</SourceLine>
+   <SourceLine>Dim AuthSocket As HTTPSocket</SourceLine>
+   <SourceLine>AuthSocket = New HTTPSocket</SourceLine>
+   <SourceLine>// Create and populate the Auth object</SourceLine>
+   <SourceLine>Auth = New Dictionary</SourceLine>
+   <SourceLine>Auth.Value( "username" ) = Self.Username</SourceLine>
+   <SourceLine>Auth.Value( "password" ) = Self.Password</SourceLine>
+   <SourceLine>If Self.AuthRemember = True Then</SourceLine>
+   <SourceLine>Auth.Value( "remember" ) = "true"</SourceLine>
+   <SourceLine>Else</SourceLine>
+   <SourceLine>Auth.Value( "remember" ) = "false"</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Auth.Value( "clientId" ) = Self.ClientID</SourceLine>
+   <SourceLine>// Setup the socket to POST format</SourceLine>
+   <SourceLine>AuthSocket.SetFormData( Auth )</SourceLine>
+   <SourceLine>Dim AuthJSON, AccessToken, ExpiresIn As String</SourceLine>
+   <SourceLine>AuthJSON = AuthSocket.Post( Endpoint, Self.AuthTimeout )</SourceLine>
+   <SourceLine>Dim JSON As JSONItem</SourceLine>
+   <SourceLine>If AuthJSON = "" Then</SourceLine>
+   <SourceLine>Self.LastErrorCode = Self.UnkownError</SourceLine>
+   <SourceLine>Return ""</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>JSON = New JSONItem( AuthJSON )</SourceLine>
+   <SourceLine>If JSON.HasName( "error" ) Then</SourceLine>
+   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
+   <SourceLine>Return ""</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If JSON.HasName( "accessToken" ) = False Then</SourceLine>
+   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
+   <SourceLine>Return ""</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>AccessToken = JSON.Value( "accessToken" )</SourceLine>
+   <SourceLine>ExpiresIn = JSON.Value( "expiresIn" )</SourceLine>
+   <SourceLine>Self.TokenExpires = GetEpoc( Nil ) + Val( ExpiresIn)</SourceLine>
+   <SourceLine>Self.SessionID =  JSON.Value( "sessionId" )</SourceLine>
+   <SourceLine>Self.AccessToken = AccessToken</SourceLine>
+   <SourceLine>Return AccessToken</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>33</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams></ItemParams>
+  <ItemResult>String</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>GetEpoc</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function GetEpoc(theDate As Date) As Integer</SourceLine>
+   <SourceLine>If theDate = Nil Then</SourceLine>
+   <SourceLine>theDate = New Date</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>return theDate.TotalSeconds - 2082844800</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>33</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>theDate As Date</ItemParams>
+  <ItemResult>Integer</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>GetToken</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function GetToken() As String</SourceLine>
+   <SourceLine>If TokenExpires &lt;&gt; -1 Then</SourceLine>
+   <SourceLine>If GetEpoc( Nil ) &lt; TokenExpires Then</SourceLine>
+   <SourceLine>If Self.AccessToken &lt;&gt; "" Then</SourceLine>
+   <SourceLine>Return Self.AccessToken </SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Return Self.Authentication</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>33</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams></ItemParams>
+  <ItemResult>String</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>GetEntries</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function GetEntries(BlogID As Integer, Params As String, Authentication As Boolean) As JSONItem</SourceLine>
+   <SourceLine>Dim APISocket As New HTTPSocket</SourceLine>
+   <SourceLine>If Authentication = True Then</SourceLine>
+   <SourceLine>Dim Token As String = Self.GetToken</SourceLine>
+   <SourceLine>APISocket.SetRequestHeader( "X-MT-Authorization:", "MTAuth accessToken=" + Token )</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Dim EndPoint As String</SourceLine>
+   <SourceLine>EndPoint = Self.CGIPath + Self.DataAPIScript + "/" + Self.APIVersion + "/sites/" + Str( BlogID ) + "/entries" </SourceLine>
+   <SourceLine>Dim Comp As String = Str( Val( Params ) )</SourceLine>
+   <SourceLine>Dim Req As String</SourceLine>
+   <SourceLine>If Comp = Params Then</SourceLine>
+   <SourceLine>// EntryID</SourceLine>
+   <SourceLine>Req = EndPoint + "/" + Params</SourceLine>
+   <SourceLine>Else</SourceLine>
+   <SourceLine>// limit=500&amp;fields=title,updatable,id,status,date,body,permalink</SourceLine>
+   <SourceLine>Req = EndPoint + "?" + Params</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Dim Response As String = APISocket.Get( Req, Self.GetTimeout )</SourceLine>
+   <SourceLine>Dim JSON As JSONItem</SourceLine>
+   <SourceLine>If Response = "" Then</SourceLine>
+   <SourceLine>JSON = Self.UnkownError</SourceLine>
+   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
+   <SourceLine>Return JSON</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>JSON = New JSONItem( Response )</SourceLine>
+   <SourceLine>If JSON.HasName( "error" ) Then</SourceLine>
+   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Return JSON</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>BlogID As Integer, Params As String, Authentication As Boolean</ItemParams>
+  <ItemResult>JSONItem</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>UnkownError</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function UnkownError() As JSONItem</SourceLine>
+   <SourceLine>Dim JSON As JSONItem</SourceLine>
+   <SourceLine>JSON = New JSONItem</SourceLine>
+   <SourceLine>Dim Error As New JSONItem</SourceLine>
+   <SourceLine>Error.Value( "code" ) = "500"</SourceLine>
+   <SourceLine>Error.Value( "message" ) = "Unknown"</SourceLine>
+   <SourceLine>JSON.Value( "error" ) = Error</SourceLine>
+   <SourceLine>Return JSON</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>33</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams></ItemParams>
+  <ItemResult>JSONItem</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>NewEntry</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function NewEntry(BlogID As Integer, Entry As Dictionary) As JSONItem</SourceLine>
+   <SourceLine>Return Self.UpdateEntry( BlogID, 0, Entry )</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>BlogID As Integer, Entry As Dictionary</ItemParams>
+  <ItemResult>JSONItem</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>EscapeJSON</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function EscapeJSON(Param As String) As String</SourceLine>
+   <SourceLine>Param = ReplaceAll( Param, "\", "\\" )</SourceLine>
+   <SourceLine>Param = ReplaceAll( Param, Chr( 34 ), "\u0022" )</SourceLine>
+   <SourceLine>Param = ReplaceAll( Param, Chr( 10 ), "\u000a" )</SourceLine>
+   <SourceLine>Param = ReplaceAll( Param, "&lt;", "\u003C" )</SourceLine>
+   <SourceLine>Param = ReplaceAll( Param, "&lt;", "\u003E" )</SourceLine>
+   <SourceLine>Param = ReplaceAll( Param, "&amp;", "\u0026" )</SourceLine>
+   <SourceLine>Param = ReplaceAll( Param, "'", "\u0027" )</SourceLine>
+   <SourceLine>Param = ReplaceAll( Param, ";", "\u003B" )</SourceLine>
+   <SourceLine>Return Param</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>33</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>Param As String</ItemParams>
+  <ItemResult>String</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>UpdateEntry</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function UpdateEntry(BlogID As Integer, EntryID As Integer, Entry As Dictionary) As JSONItem</SourceLine>
+   <SourceLine>Dim APISocket As New HTTPSocket</SourceLine>
+   <SourceLine>Dim Token As String = Self.GetToken</SourceLine>
+   <SourceLine>APISocket.SetRequestHeader( "X-MT-Authorization:", "MTAuth accessToken=" + Token )</SourceLine>
+   <SourceLine>Dim EndPoint As String</SourceLine>
+   <SourceLine>EndPoint = Self.CGIPath + Self.DataAPIScript + "/" + Self.APIVersion + "/sites/" + Str( BlogID ) + "/entries" </SourceLine>
+   <SourceLine>If EntryID &gt; 0 Then</SourceLine>
+   <SourceLine>EndPoint = EndPoint + "/" + Str( EntryID )</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Dim JSON as New JSONItem</SourceLine>
+   <SourceLine>Dim i As Integer</SourceLine>
+   <SourceLine>For i = 0 to Entry.Count - 1</SourceLine>
+   <SourceLine>Dim Key As String =Entry.Key( i )</SourceLine>
+   <SourceLine>JSON.Value( Key ) = Self.EscapeJSON( Entry.Value( Key ) )</SourceLine>
+   <SourceLine>Next</SourceLine>
+   <SourceLine>Dim Post As Dictionary</SourceLine>
+   <SourceLine>Post = New Dictionary</SourceLine>
+   <SourceLine>Post.Value( "entry" ) = JSON.ToString</SourceLine>
+   <SourceLine>If EntryID &gt; 0 Then</SourceLine>
+   <SourceLine>Post.Value( "__method" ) = "PUT"</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>APISocket.SetFormData( Post )</SourceLine>
+   <SourceLine>Dim Response As String = APISocket.Post( Endpoint, Self.PostTimeout )</SourceLine>
+   <SourceLine>If Response = "" Then</SourceLine>
+   <SourceLine>JSON = Self.UnkownError</SourceLine>
+   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
+   <SourceLine>Return JSON</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>JSON = New JSONItem( Response )</SourceLine>
+   <SourceLine>If JSON.HasName( "error" ) Then</SourceLine>
+   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
+   <SourceLine>Return JSON</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Return JSON</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>BlogID As Integer, EntryID As Integer, Entry As Dictionary</ItemParams>
+  <ItemResult>JSONItem</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>GetEntry</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function GetEntry(BlogID As Integer, EntryID As Integer, Authentication As Boolean) As JSONItem</SourceLine>
+   <SourceLine>Return Self.GetEntries( BlogID, Str( EntryID), Authentication )</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>BlogID As Integer, EntryID As Integer, Authentication As Boolean</ItemParams>
+  <ItemResult>JSONItem</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>UploadAsset</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function UploadAsset(BlogID As Integer, File As FolderItem, Path As String, Rename As Boolean, Normarize As Boolean) As JSONItem</SourceLine>
+   <SourceLine>If File = Nil Then</SourceLine>
+   <SourceLine>Self.LastErrorCode = Self.UnkownError</SourceLine>
+   <SourceLine>Return Self.LastErrorCode</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Dim APISocket As new HttpSocket</SourceLine>
+   <SourceLine>Dim Token As String = Self.GetToken</SourceLine>
+   <SourceLine>APISocket.SetRequestHeader( "X-MT-Authorization:", "MTAuth accessToken=" + Token )</SourceLine>
+   <SourceLine>Dim EndPoint As String</SourceLine>
+   <SourceLine>EndPoint = Self.CGIPath + Self.DataAPIScript + "/" + Self.APIVersion + "/sites/" + Str( BlogID ) + "/assets/upload"</SourceLine>
+   <SourceLine>Dim Data, Rawdata, nl, EncodedFileName As String</SourceLine>
+   <SourceLine>Const boundary = "--------0xKhTmLbOuNdArY"</SourceLine>
+   <SourceLine>nl = chr( 13 ) + chr( 10 )</SourceLine>
+   <SourceLine>Dim bs As BinaryStream</SourceLine>
+   <SourceLine>bs = File.OpenAsBinaryFile</SourceLine>
+   <SourceLine>rawdata = bs.Read( File.Length )</SourceLine>
+   <SourceLine>EncodedFileName = EncodeURLComponent( File.Name )</SourceLine>
+   <SourceLine>Dim MimeType As String = Self.GetMimeType( File.Name )</SourceLine>
+   <SourceLine>Data="--" + boundary + nl</SourceLine>
+   <SourceLine>Data = Data + _</SourceLine>
+   <SourceLine>"Content-Disposition: form-data; name=""file""" + nl + nl + _</SourceLine>
+   <SourceLine>EncodedFileName + nl</SourceLine>
+   <SourceLine>Data = Data + _</SourceLine>
+   <SourceLine>"--" + boundary + nl</SourceLine>
+   <SourceLine>If Rename = True Then</SourceLine>
+   <SourceLine>Data = Data + _</SourceLine>
+   <SourceLine>"Content-Disposition: form-data; name=""autoRenameIfExists""" + nl + nl + _</SourceLine>
+   <SourceLine>"true" + nl</SourceLine>
+   <SourceLine>Data = Data + _</SourceLine>
+   <SourceLine>"--" + boundary + nl</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If Normarize = False Then</SourceLine>
+   <SourceLine>Data = Data + _</SourceLine>
+   <SourceLine>"Content-Disposition: form-data; name=""normalizeOrientation""" + nl + nl + _</SourceLine>
+   <SourceLine>"false" + nl</SourceLine>
+   <SourceLine>Data = Data + _</SourceLine>
+   <SourceLine>"--" + boundary + nl</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If Path &lt;&gt; "" Then</SourceLine>
+   <SourceLine>Data = Data + _</SourceLine>
+   <SourceLine>"Content-Disposition: form-data; name=""path""" + nl + nl + _</SourceLine>
+   <SourceLine>Path + nl</SourceLine>
+   <SourceLine>Data = Data + _</SourceLine>
+   <SourceLine>"--" + boundary + nl</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Data = Data + _</SourceLine>
+   <SourceLine>"Content-Disposition: form-data; name=""file""; filename=""" + _</SourceLine>
+   <SourceLine>EncodedFileName + """" + nl +_</SourceLine>
+   <SourceLine>"Content-Type: " + MimeType + nl + _</SourceLine>
+   <SourceLine>"Content-Length: " + Str( LenB( Rawdata ) ) + nl + _</SourceLine>
+   <SourceLine>"Content-Transfer-Encoding: binary" + nl + _</SourceLine>
+   <SourceLine>nl + Rawdata + nl</SourceLine>
+   <SourceLine>Data = Data + _</SourceLine>
+   <SourceLine>"--" + boundary + nl + nl</SourceLine>
+   <SourceLine>APISocket.yield = true</SourceLine>
+   <SourceLine>APISocket.SetRequestContent Data, "multipart/form-data, boundary=" + boundary</SourceLine>
+   <SourceLine>Dim Response As String = APISocket.post( EndPoint, Self.PostTimeout )</SourceLine>
+   <SourceLine>Dim JSON As JSONItem</SourceLine>
+   <SourceLine>If Response = "" Then</SourceLine>
+   <SourceLine>JSON = Self.UnkownError</SourceLine>
+   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
+   <SourceLine>Return JSON</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>JSON = New JSONItem( Response )</SourceLine>
+   <SourceLine>If JSON.HasName( "error" ) Then</SourceLine>
+   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
+   <SourceLine>Return JSON</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Return JSON</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>BlogID As Integer, File As FolderItem, Path As String, Rename As Boolean, Normarize As Boolean</ItemParams>
+  <ItemResult>JSONItem</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>GetMimeType</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function GetMimeType(Name As String) As String</SourceLine>
+   <SourceLine>If CountFields( Name, "." ) = 0 Then</SourceLine>
+   <SourceLine>Return "text/plain"</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Dim Extension As String = NthField( Name, ".", CountFields( Name, "." ) )</SourceLine>
+   <SourceLine>If Extension = "" Then</SourceLine>
+   <SourceLine>Return "text/plain"</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Dim Types As New Dictionary</SourceLine>
+   <SourceLine>Types.Value( "css" ) =  "text/css"</SourceLine>
+   <SourceLine>Types.Value( "html" ) =  "text/html"</SourceLine>
+   <SourceLine>Types.Value( "mtml" ) =  "text/html"</SourceLine>
+   <SourceLine>Types.Value( "xhtml" ) =  "application/xhtml+xml"</SourceLine>
+   <SourceLine>Types.Value( "htm" ) =  "text/html"</SourceLine>
+   <SourceLine>Types.Value( "txt" ) =  "text/plain"</SourceLine>
+   <SourceLine>Types.Value( "rtx" ) =  "text/richtext"</SourceLine>
+   <SourceLine>Types.Value( "tsv" ) =  "text/tab-separated-values"</SourceLine>
+   <SourceLine>Types.Value( "csv" ) =  "text/csv"</SourceLine>
+   <SourceLine>Types.Value( "hdml" ) =  "text/x-hdml; charset=Shift_JIS"</SourceLine>
+   <SourceLine>Types.Value( "xml" ) =  "application/xml"</SourceLine>
+   <SourceLine>Types.Value( "rdf" ) =  "application/rss+xml"</SourceLine>
+   <SourceLine>Types.Value( "xsl" ) =  "text/xsl"</SourceLine>
+   <SourceLine>Types.Value( "mpeg" ) =  "video/mpeg"</SourceLine>
+   <SourceLine>Types.Value( "mpg" ) =  "video/mpeg"</SourceLine>
+   <SourceLine>Types.Value( "mpe" ) =  "video/mpeg"</SourceLine>
+   <SourceLine>Types.Value( "avi" ) =  "video/x-msvideo"</SourceLine>
+   <SourceLine>Types.Value( "movie" ) =  "video/x-sgi-movie"</SourceLine>
+   <SourceLine>Types.Value( "qt" ) =  "video/quicktime"</SourceLine>
+   <SourceLine>Types.Value( "ice" ) =  "x-conference/x-cooltalk"</SourceLine>
+   <SourceLine>Types.Value( "svr" ) =  "x-world/x-svr"</SourceLine>
+   <SourceLine>Types.Value( "vrml" ) =  "x-world/x-vrml"</SourceLine>
+   <SourceLine>Types.Value( "wrl" ) =  "x-world/x-vrml"</SourceLine>
+   <SourceLine>Types.Value( "vrt" ) =  "x-world/x-vrt"</SourceLine>
+   <SourceLine>Types.Value( "spl" ) =  "application/futuresplash"</SourceLine>
+   <SourceLine>Types.Value( "hqx" ) =  "application/mac-binhex40"</SourceLine>
+   <SourceLine>Types.Value( "doc" ) =  "application/msword"</SourceLine>
+   <SourceLine>Types.Value( "pdf" ) =  "application/pdf"</SourceLine>
+   <SourceLine>Types.Value( "ai" ) =  "application/postscript"</SourceLine>
+   <SourceLine>Types.Value( "eps" ) =  "application/postscript"</SourceLine>
+   <SourceLine>Types.Value( "ps" ) =  "application/postscript"</SourceLine>
+   <SourceLine>Types.Value( "ppt" ) =  "application/vnd.ms-powerpoint"</SourceLine>
+   <SourceLine>Types.Value( "rtf" ) =  "application/rtf"</SourceLine>
+   <SourceLine>Types.Value( "dcr" ) =  "application/x-director"</SourceLine>
+   <SourceLine>Types.Value( "dir" ) =  "application/x-director"</SourceLine>
+   <SourceLine>Types.Value( "dxr" ) =  "application/x-director"</SourceLine>
+   <SourceLine>Types.Value( "js" ) =  "application/javascript"</SourceLine>
+   <SourceLine>Types.Value( "dvi" ) =  "application/x-dvi"</SourceLine>
+   <SourceLine>Types.Value( "gtar" ) =  "application/x-gtar"</SourceLine>
+   <SourceLine>Types.Value( "gzip" ) =  "application/x-gzip"</SourceLine>
+   <SourceLine>Types.Value( "latex" ) =  "application/x-latex"</SourceLine>
+   <SourceLine>Types.Value( "lzh" ) =  "application/x-lha"</SourceLine>
+   <SourceLine>Types.Value( "swf" ) =  "application/x-shockwave-flash"</SourceLine>
+   <SourceLine>Types.Value( "sit" ) =  "application/x-stuffit"</SourceLine>
+   <SourceLine>Types.Value( "tar" ) =  "application/x-tar"</SourceLine>
+   <SourceLine>Types.Value( "tcl" ) =  "application/x-tcl"</SourceLine>
+   <SourceLine>Types.Value( "tex" ) =  "application/x-texinfo"</SourceLine>
+   <SourceLine>Types.Value( "texinfo" ) =  "application/x-texinfo"</SourceLine>
+   <SourceLine>Types.Value( "texi" ) =  "application/x-texi"</SourceLine>
+   <SourceLine>Types.Value( "src" ) =  "application/x-wais-source"</SourceLine>
+   <SourceLine>Types.Value( "zip" ) =  "application/zip"</SourceLine>
+   <SourceLine>Types.Value( "au" ) =  "audio/basic"</SourceLine>
+   <SourceLine>Types.Value( "snd" ) =  "audio/basic"</SourceLine>
+   <SourceLine>Types.Value( "midi" ) =  "audio/midi"</SourceLine>
+   <SourceLine>Types.Value( "mid" ) =  "audio/midi"</SourceLine>
+   <SourceLine>Types.Value( "kar" ) =  "audio/midi"</SourceLine>
+   <SourceLine>Types.Value( "mpga" ) =  "audio/mpeg"</SourceLine>
+   <SourceLine>Types.Value( "mp2" ) =  "audio/mpeg"</SourceLine>
+   <SourceLine>Types.Value( "mp3" ) =  "audio/mpeg"</SourceLine>
+   <SourceLine>Types.Value( "ra" ) =  "audio/x-pn-realaudio"</SourceLine>
+   <SourceLine>Types.Value( "ram" ) =  "audio/x-pn-realaudio"</SourceLine>
+   <SourceLine>Types.Value( "rm" ) =  "audio/x-pn-realaudio"</SourceLine>
+   <SourceLine>Types.Value( "rpm" ) =  "x-pn-realaudio-plugin"</SourceLine>
+   <SourceLine>Types.Value( "wav" ) =  "audio/x-wav"</SourceLine>
+   <SourceLine>Types.Value( "bmp" ) =  "image/bmp"</SourceLine>
+   <SourceLine>Types.Value( "gif" ) =  "image/gif"</SourceLine>
+   <SourceLine>Types.Value( "jpeg" ) =  "image/jpeg"</SourceLine>
+   <SourceLine>Types.Value( "jpg" ) =  "image/jpeg"</SourceLine>
+   <SourceLine>Types.Value( "jpe" ) =  "image/jpeg"</SourceLine>
+   <SourceLine>Types.Value( "png" ) =  "image/png"</SourceLine>
+   <SourceLine>Types.Value( "tiff" ) =  "image/tiff"</SourceLine>
+   <SourceLine>Types.Value( "tif" ) =  "image/tiff"</SourceLine>
+   <SourceLine>Types.Value( "pnm" ) =  "image/x-portable-anymap"</SourceLine>
+   <SourceLine>Types.Value( "ras" ) =  "image/x-cmu-raster"</SourceLine>
+   <SourceLine>Types.Value( "pnm" ) =  "image/x-portable-anymap"</SourceLine>
+   <SourceLine>Types.Value( "pbm" ) =  "image/x-portable-bitmap"</SourceLine>
+   <SourceLine>Types.Value( "pgm" ) =  "image/x-portable-graymap"</SourceLine>
+   <SourceLine>Types.Value( "ppm" ) =  "image/x-portable-pixmap"</SourceLine>
+   <SourceLine>Types.Value( "rgb" ) =  "image/x-rgb"</SourceLine>
+   <SourceLine>Types.Value( "xbm" ) =  "image/x-xbitmap"</SourceLine>
+   <SourceLine>Types.Value( "xls" ) =  "application/vnd.ms-excel"</SourceLine>
+   <SourceLine>Types.Value( "xpm" ) =  "image/x-pixmap"</SourceLine>
+   <SourceLine>Types.Value( "xwd" ) =  "image/x-xwindowdump"</SourceLine>
+   <SourceLine>Types.Value( "ico" ) =  "image/vnd.microsoft.icon"</SourceLine>
+   <SourceLine>Types.Value( "docx" ) =  "application/vnd.openxmlformats-officedocument.wordprocessingml.document"</SourceLine>
+   <SourceLine>Types.Value( "pptx" ) =  "application/vnd.openxmlformats-officedocument.presentationml.presentation"</SourceLine>
+   <SourceLine>Types.Value( "xlsx" ) =  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"</SourceLine>
+   <SourceLine>Types.Value( "json" ) =  "application/json"</SourceLine>
+   <SourceLine>If Types.HasKey( Extension ) Then</SourceLine>
+   <SourceLine>Return Types.Value( Extension )</SourceLine>
+   <SourceLine>Else</SourceLine>
+   <SourceLine>Return "text/plain"</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>33</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>Name As String</ItemParams>
+  <ItemResult>String</ItemResult>
+ </Method>
+ <Property>
+  <ItemName>LastErrorCode</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>LastErrorCode As JSONItem</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>LastErrorCode As JSONItem</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>AccessToken</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>AccessToken As String</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>AccessToken As String</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>TokenExpires</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>TokenExpires As Integer</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>TokenExpires As Integer = -1</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>SessionID</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>SessionID As String</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>SessionID As String</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>DataAPIScript</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>DataAPIScript As String = "mt-data-api.cgi"</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>DataAPIScript As String = "mt-data-api.cgi"</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>CGIPath</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>CGIPath As String = "http://localhost/cgi-bin/mt/"</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>CGIPath As String = "http://localhost/cgi-bin/mt/"</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>AuthTimeout</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>AuthTimeout As Integer</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>AuthTimeout As Integer = 30</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>APIVersion</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>APIVersion As String = "v1"</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>APIVersion As String = "v1"</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>AuthRemember</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>AuthRemember As Boolean</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>AuthRemember As Boolean = True</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>ClientID</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>ClientID As String = "Xojo"</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>ClientID As String = "Xojo"</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>UserName</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>UserName As String = "Melody"</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>UserName As String = "Melody"</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>Password</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Password As String = "Nelson"</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>Password As String = "Nelson"</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>GetTimeout</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>GetTimeout As Integer</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>GetTimeout As Integer = 90</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>PostTimeout</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>PostTimeout As Integer</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>PostTimeout As Integer = 60</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>AdminScript</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>AdminScript As String = "mt.cgi"</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>AdminScript As String = "mt.cgi"</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <ViewBehavior>
+  <ViewProperty>
+   <ObjName>Name</ObjName>
+   <Visible>1</Visible>
+   <PropertyGroup>ID</PropertyGroup>
+   <ItemType>String</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>Index</ObjName>
+   <Visible>1</Visible>
+   <PropertyGroup>ID</PropertyGroup>
+   <PropertyValue>-2147483648</PropertyValue>
+   <ItemType>Integer</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>Super</ObjName>
+   <Visible>1</Visible>
+   <PropertyGroup>ID</PropertyGroup>
+   <ItemType>String</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>Left</ObjName>
+   <Visible>1</Visible>
+   <PropertyGroup>Position</PropertyGroup>
+   <PropertyValue>0</PropertyValue>
+   <ItemType>Integer</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>Top</ObjName>
+   <Visible>1</Visible>
+   <PropertyGroup>Position</PropertyGroup>
+   <PropertyValue>0</PropertyValue>
+   <ItemType>Integer</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>AccessToken</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <ItemType>String</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>TokenExpires</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <PropertyValue>-1</PropertyValue>
+   <ItemType>Integer</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>SessionID</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <ItemType>String</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>DataAPIScript</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <PropertyValue>mt-data-api.cgi</PropertyValue>
+   <ItemType>String</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>CGIPath</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <PropertyValue>http://localhost/cgi-bin/mt/</PropertyValue>
+   <ItemType>String</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>AuthTimeout</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <PropertyValue>30</PropertyValue>
+   <ItemType>Integer</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>APIVersion</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <PropertyValue>v1</PropertyValue>
+   <ItemType>String</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>AuthRemember</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <PropertyValue>True</PropertyValue>
+   <ItemType>Boolean</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>ClientID</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <PropertyValue>Xojo</PropertyValue>
+   <ItemType>String</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>UserName</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <ItemType>String</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>Password</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <ItemType>String</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>GetTimeout</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <PropertyValue>90</PropertyValue>
+   <ItemType>Integer</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>PostTimeout</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <PropertyValue>60</PropertyValue>
+   <ItemType>Integer</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>AdminScript</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <PropertyValue>mt.cgi</PropertyValue>
+   <ItemType>String</ItemType>
+  </ViewProperty>
+ </ViewBehavior>
+</block>
+</RBProject>
