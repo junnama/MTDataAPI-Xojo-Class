@@ -48,7 +48,7 @@
    <SourceLine>End If</SourceLine>
    <SourceLine>AccessToken = JSON.Value( "accessToken" )</SourceLine>
    <SourceLine>ExpiresIn = JSON.Value( "expiresIn" )</SourceLine>
-   <SourceLine>Self.TokenExpires = GetEpoc( Nil ) + Val( ExpiresIn)</SourceLine>
+   <SourceLine>Self.TokenExpires = GetEpoc( Nil ) + Val( ExpiresIn )</SourceLine>
    <SourceLine>Self.SessionID =  JSON.Value( "sessionId" )</SourceLine>
    <SourceLine>Self.AccessToken = AccessToken</SourceLine>
    <SourceLine>Return AccessToken</SourceLine>
@@ -307,7 +307,7 @@
    <SourceLine>Dim MimeType As String = Self.GetMimeType( File.Name )</SourceLine>
    <SourceLine>Data="--" + boundary + nl</SourceLine>
    <SourceLine>Data = Data + _</SourceLine>
-   <SourceLine>"Content-Disposition: form-data; name=""file""" + nl + nl + _</SourceLine>
+   <SourceLine>"Content-Disposition: form-data; name=""filename""" + nl + nl + _</SourceLine>
    <SourceLine>EncodedFileName + nl</SourceLine>
    <SourceLine>Data = Data + _</SourceLine>
    <SourceLine>"--" + boundary + nl</SourceLine>
@@ -379,97 +379,100 @@
    <SourceLine>If Extension = "" Then</SourceLine>
    <SourceLine>Return "text/plain"</SourceLine>
    <SourceLine>End If</SourceLine>
+   <SourceLine>If Self.MimeTypes = Nil Then</SourceLine>
    <SourceLine>Dim Types As New Dictionary</SourceLine>
-   <SourceLine>Types.Value( "css" ) =  "text/css"</SourceLine>
-   <SourceLine>Types.Value( "html" ) =  "text/html"</SourceLine>
-   <SourceLine>Types.Value( "mtml" ) =  "text/html"</SourceLine>
-   <SourceLine>Types.Value( "xhtml" ) =  "application/xhtml+xml"</SourceLine>
-   <SourceLine>Types.Value( "htm" ) =  "text/html"</SourceLine>
-   <SourceLine>Types.Value( "txt" ) =  "text/plain"</SourceLine>
-   <SourceLine>Types.Value( "rtx" ) =  "text/richtext"</SourceLine>
-   <SourceLine>Types.Value( "tsv" ) =  "text/tab-separated-values"</SourceLine>
-   <SourceLine>Types.Value( "csv" ) =  "text/csv"</SourceLine>
-   <SourceLine>Types.Value( "hdml" ) =  "text/x-hdml; charset=Shift_JIS"</SourceLine>
-   <SourceLine>Types.Value( "xml" ) =  "application/xml"</SourceLine>
-   <SourceLine>Types.Value( "rdf" ) =  "application/rss+xml"</SourceLine>
-   <SourceLine>Types.Value( "xsl" ) =  "text/xsl"</SourceLine>
-   <SourceLine>Types.Value( "mpeg" ) =  "video/mpeg"</SourceLine>
-   <SourceLine>Types.Value( "mpg" ) =  "video/mpeg"</SourceLine>
-   <SourceLine>Types.Value( "mpe" ) =  "video/mpeg"</SourceLine>
-   <SourceLine>Types.Value( "avi" ) =  "video/x-msvideo"</SourceLine>
-   <SourceLine>Types.Value( "movie" ) =  "video/x-sgi-movie"</SourceLine>
-   <SourceLine>Types.Value( "qt" ) =  "video/quicktime"</SourceLine>
-   <SourceLine>Types.Value( "ice" ) =  "x-conference/x-cooltalk"</SourceLine>
-   <SourceLine>Types.Value( "svr" ) =  "x-world/x-svr"</SourceLine>
-   <SourceLine>Types.Value( "vrml" ) =  "x-world/x-vrml"</SourceLine>
-   <SourceLine>Types.Value( "wrl" ) =  "x-world/x-vrml"</SourceLine>
-   <SourceLine>Types.Value( "vrt" ) =  "x-world/x-vrt"</SourceLine>
-   <SourceLine>Types.Value( "spl" ) =  "application/futuresplash"</SourceLine>
-   <SourceLine>Types.Value( "hqx" ) =  "application/mac-binhex40"</SourceLine>
-   <SourceLine>Types.Value( "doc" ) =  "application/msword"</SourceLine>
-   <SourceLine>Types.Value( "pdf" ) =  "application/pdf"</SourceLine>
-   <SourceLine>Types.Value( "ai" ) =  "application/postscript"</SourceLine>
-   <SourceLine>Types.Value( "eps" ) =  "application/postscript"</SourceLine>
-   <SourceLine>Types.Value( "ps" ) =  "application/postscript"</SourceLine>
-   <SourceLine>Types.Value( "ppt" ) =  "application/vnd.ms-powerpoint"</SourceLine>
-   <SourceLine>Types.Value( "rtf" ) =  "application/rtf"</SourceLine>
-   <SourceLine>Types.Value( "dcr" ) =  "application/x-director"</SourceLine>
-   <SourceLine>Types.Value( "dir" ) =  "application/x-director"</SourceLine>
-   <SourceLine>Types.Value( "dxr" ) =  "application/x-director"</SourceLine>
-   <SourceLine>Types.Value( "js" ) =  "application/javascript"</SourceLine>
-   <SourceLine>Types.Value( "dvi" ) =  "application/x-dvi"</SourceLine>
-   <SourceLine>Types.Value( "gtar" ) =  "application/x-gtar"</SourceLine>
-   <SourceLine>Types.Value( "gzip" ) =  "application/x-gzip"</SourceLine>
-   <SourceLine>Types.Value( "latex" ) =  "application/x-latex"</SourceLine>
-   <SourceLine>Types.Value( "lzh" ) =  "application/x-lha"</SourceLine>
-   <SourceLine>Types.Value( "swf" ) =  "application/x-shockwave-flash"</SourceLine>
-   <SourceLine>Types.Value( "sit" ) =  "application/x-stuffit"</SourceLine>
-   <SourceLine>Types.Value( "tar" ) =  "application/x-tar"</SourceLine>
-   <SourceLine>Types.Value( "tcl" ) =  "application/x-tcl"</SourceLine>
-   <SourceLine>Types.Value( "tex" ) =  "application/x-texinfo"</SourceLine>
-   <SourceLine>Types.Value( "texinfo" ) =  "application/x-texinfo"</SourceLine>
-   <SourceLine>Types.Value( "texi" ) =  "application/x-texi"</SourceLine>
-   <SourceLine>Types.Value( "src" ) =  "application/x-wais-source"</SourceLine>
-   <SourceLine>Types.Value( "zip" ) =  "application/zip"</SourceLine>
-   <SourceLine>Types.Value( "au" ) =  "audio/basic"</SourceLine>
-   <SourceLine>Types.Value( "snd" ) =  "audio/basic"</SourceLine>
-   <SourceLine>Types.Value( "midi" ) =  "audio/midi"</SourceLine>
-   <SourceLine>Types.Value( "mid" ) =  "audio/midi"</SourceLine>
-   <SourceLine>Types.Value( "kar" ) =  "audio/midi"</SourceLine>
-   <SourceLine>Types.Value( "mpga" ) =  "audio/mpeg"</SourceLine>
-   <SourceLine>Types.Value( "mp2" ) =  "audio/mpeg"</SourceLine>
-   <SourceLine>Types.Value( "mp3" ) =  "audio/mpeg"</SourceLine>
-   <SourceLine>Types.Value( "ra" ) =  "audio/x-pn-realaudio"</SourceLine>
-   <SourceLine>Types.Value( "ram" ) =  "audio/x-pn-realaudio"</SourceLine>
-   <SourceLine>Types.Value( "rm" ) =  "audio/x-pn-realaudio"</SourceLine>
-   <SourceLine>Types.Value( "rpm" ) =  "x-pn-realaudio-plugin"</SourceLine>
-   <SourceLine>Types.Value( "wav" ) =  "audio/x-wav"</SourceLine>
-   <SourceLine>Types.Value( "bmp" ) =  "image/bmp"</SourceLine>
-   <SourceLine>Types.Value( "gif" ) =  "image/gif"</SourceLine>
-   <SourceLine>Types.Value( "jpeg" ) =  "image/jpeg"</SourceLine>
-   <SourceLine>Types.Value( "jpg" ) =  "image/jpeg"</SourceLine>
-   <SourceLine>Types.Value( "jpe" ) =  "image/jpeg"</SourceLine>
-   <SourceLine>Types.Value( "png" ) =  "image/png"</SourceLine>
-   <SourceLine>Types.Value( "tiff" ) =  "image/tiff"</SourceLine>
-   <SourceLine>Types.Value( "tif" ) =  "image/tiff"</SourceLine>
-   <SourceLine>Types.Value( "pnm" ) =  "image/x-portable-anymap"</SourceLine>
-   <SourceLine>Types.Value( "ras" ) =  "image/x-cmu-raster"</SourceLine>
-   <SourceLine>Types.Value( "pnm" ) =  "image/x-portable-anymap"</SourceLine>
-   <SourceLine>Types.Value( "pbm" ) =  "image/x-portable-bitmap"</SourceLine>
-   <SourceLine>Types.Value( "pgm" ) =  "image/x-portable-graymap"</SourceLine>
-   <SourceLine>Types.Value( "ppm" ) =  "image/x-portable-pixmap"</SourceLine>
-   <SourceLine>Types.Value( "rgb" ) =  "image/x-rgb"</SourceLine>
-   <SourceLine>Types.Value( "xbm" ) =  "image/x-xbitmap"</SourceLine>
-   <SourceLine>Types.Value( "xls" ) =  "application/vnd.ms-excel"</SourceLine>
-   <SourceLine>Types.Value( "xpm" ) =  "image/x-pixmap"</SourceLine>
-   <SourceLine>Types.Value( "xwd" ) =  "image/x-xwindowdump"</SourceLine>
-   <SourceLine>Types.Value( "ico" ) =  "image/vnd.microsoft.icon"</SourceLine>
-   <SourceLine>Types.Value( "docx" ) =  "application/vnd.openxmlformats-officedocument.wordprocessingml.document"</SourceLine>
-   <SourceLine>Types.Value( "pptx" ) =  "application/vnd.openxmlformats-officedocument.presentationml.presentation"</SourceLine>
-   <SourceLine>Types.Value( "xlsx" ) =  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"</SourceLine>
-   <SourceLine>Types.Value( "json" ) =  "application/json"</SourceLine>
-   <SourceLine>If Types.HasKey( Extension ) Then</SourceLine>
-   <SourceLine>Return Types.Value( Extension )</SourceLine>
+   <SourceLine>Types.Value( "css" ) = "text/css"</SourceLine>
+   <SourceLine>Types.Value( "html" ) = "text/html"</SourceLine>
+   <SourceLine>Types.Value( "mtml" ) = "text/html"</SourceLine>
+   <SourceLine>Types.Value( "xhtml" ) = "application/xhtml+xml"</SourceLine>
+   <SourceLine>Types.Value( "htm" ) = "text/html"</SourceLine>
+   <SourceLine>Types.Value( "txt" ) = "text/plain"</SourceLine>
+   <SourceLine>Types.Value( "rtx" ) = "text/richtext"</SourceLine>
+   <SourceLine>Types.Value( "tsv" ) = "text/tab-separated-values"</SourceLine>
+   <SourceLine>Types.Value( "csv" ) = "text/csv"</SourceLine>
+   <SourceLine>Types.Value( "hdml" ) = "text/x-hdml"</SourceLine>
+   <SourceLine>Types.Value( "xml" ) = "application/xml"</SourceLine>
+   <SourceLine>Types.Value( "rdf" ) = "application/rss+xml"</SourceLine>
+   <SourceLine>Types.Value( "xsl" ) = "text/xsl"</SourceLine>
+   <SourceLine>Types.Value( "mpeg" ) = "video/mpeg"</SourceLine>
+   <SourceLine>Types.Value( "mpg" ) = "video/mpeg"</SourceLine>
+   <SourceLine>Types.Value( "mpe" ) = "video/mpeg"</SourceLine>
+   <SourceLine>Types.Value( "avi" ) = "video/x-msvideo"</SourceLine>
+   <SourceLine>Types.Value( "movie" ) = "video/x-sgi-movie"</SourceLine>
+   <SourceLine>Types.Value( "qt" ) = "video/quicktime"</SourceLine>
+   <SourceLine>Types.Value( "ice" ) = "x-conference/x-cooltalk"</SourceLine>
+   <SourceLine>Types.Value( "svr" ) = "x-world/x-svr"</SourceLine>
+   <SourceLine>Types.Value( "vrml" ) = "x-world/x-vrml"</SourceLine>
+   <SourceLine>Types.Value( "wrl" ) = "x-world/x-vrml"</SourceLine>
+   <SourceLine>Types.Value( "vrt" ) = "x-world/x-vrt"</SourceLine>
+   <SourceLine>Types.Value( "spl" ) = "application/futuresplash"</SourceLine>
+   <SourceLine>Types.Value( "hqx" ) = "application/mac-binhex40"</SourceLine>
+   <SourceLine>Types.Value( "doc" ) = "application/msword"</SourceLine>
+   <SourceLine>Types.Value( "pdf" ) = "application/pdf"</SourceLine>
+   <SourceLine>Types.Value( "ai" ) = "application/postscript"</SourceLine>
+   <SourceLine>Types.Value( "eps" ) = "application/postscript"</SourceLine>
+   <SourceLine>Types.Value( "ps" ) = "application/postscript"</SourceLine>
+   <SourceLine>Types.Value( "ppt" ) = "application/vnd.ms-powerpoint"</SourceLine>
+   <SourceLine>Types.Value( "rtf" ) = "application/rtf"</SourceLine>
+   <SourceLine>Types.Value( "dcr" ) = "application/x-director"</SourceLine>
+   <SourceLine>Types.Value( "dir" ) = "application/x-director"</SourceLine>
+   <SourceLine>Types.Value( "dxr" ) = "application/x-director"</SourceLine>
+   <SourceLine>Types.Value( "js" ) = "application/javascript"</SourceLine>
+   <SourceLine>Types.Value( "dvi" ) = "application/x-dvi"</SourceLine>
+   <SourceLine>Types.Value( "gtar" ) = "application/x-gtar"</SourceLine>
+   <SourceLine>Types.Value( "gzip" ) = "application/x-gzip"</SourceLine>
+   <SourceLine>Types.Value( "latex" ) = "application/x-latex"</SourceLine>
+   <SourceLine>Types.Value( "lzh" ) = "application/x-lha"</SourceLine>
+   <SourceLine>Types.Value( "swf" ) = "application/x-shockwave-flash"</SourceLine>
+   <SourceLine>Types.Value( "sit" ) = "application/x-stuffit"</SourceLine>
+   <SourceLine>Types.Value( "tar" ) = "application/x-tar"</SourceLine>
+   <SourceLine>Types.Value( "tcl" ) = "application/x-tcl"</SourceLine>
+   <SourceLine>Types.Value( "tex" ) = "application/x-texinfo"</SourceLine>
+   <SourceLine>Types.Value( "texinfo" ) = "application/x-texinfo"</SourceLine>
+   <SourceLine>Types.Value( "texi" ) = "application/x-texi"</SourceLine>
+   <SourceLine>Types.Value( "src" ) = "application/x-wais-source"</SourceLine>
+   <SourceLine>Types.Value( "zip" ) = "application/zip"</SourceLine>
+   <SourceLine>Types.Value( "au" ) = "audio/basic"</SourceLine>
+   <SourceLine>Types.Value( "snd" ) = "audio/basic"</SourceLine>
+   <SourceLine>Types.Value( "midi" ) = "audio/midi"</SourceLine>
+   <SourceLine>Types.Value( "mid" ) = "audio/midi"</SourceLine>
+   <SourceLine>Types.Value( "kar" ) = "audio/midi"</SourceLine>
+   <SourceLine>Types.Value( "mpga" ) = "audio/mpeg"</SourceLine>
+   <SourceLine>Types.Value( "mp2" ) = "audio/mpeg"</SourceLine>
+   <SourceLine>Types.Value( "mp3" ) = "audio/mpeg"</SourceLine>
+   <SourceLine>Types.Value( "ra" ) = "audio/x-pn-realaudio"</SourceLine>
+   <SourceLine>Types.Value( "ram" ) = "audio/x-pn-realaudio"</SourceLine>
+   <SourceLine>Types.Value( "rm" ) = "audio/x-pn-realaudio"</SourceLine>
+   <SourceLine>Types.Value( "rpm" ) = "x-pn-realaudio-plugin"</SourceLine>
+   <SourceLine>Types.Value( "wav" ) = "audio/x-wav"</SourceLine>
+   <SourceLine>Types.Value( "bmp" ) = "image/bmp"</SourceLine>
+   <SourceLine>Types.Value( "gif" ) = "image/gif"</SourceLine>
+   <SourceLine>Types.Value( "jpeg" ) = "image/jpeg"</SourceLine>
+   <SourceLine>Types.Value( "jpg" ) = "image/jpeg"</SourceLine>
+   <SourceLine>Types.Value( "jpe" ) = "image/jpeg"</SourceLine>
+   <SourceLine>Types.Value( "png" ) = "image/png"</SourceLine>
+   <SourceLine>Types.Value( "tiff" ) = "image/tiff"</SourceLine>
+   <SourceLine>Types.Value( "tif" ) = "image/tiff"</SourceLine>
+   <SourceLine>Types.Value( "pnm" ) = "image/x-portable-anymap"</SourceLine>
+   <SourceLine>Types.Value( "ras" ) = "image/x-cmu-raster"</SourceLine>
+   <SourceLine>Types.Value( "pnm" ) = "image/x-portable-anymap"</SourceLine>
+   <SourceLine>Types.Value( "pbm" ) = "image/x-portable-bitmap"</SourceLine>
+   <SourceLine>Types.Value( "pgm" ) = "image/x-portable-graymap"</SourceLine>
+   <SourceLine>Types.Value( "ppm" ) = "image/x-portable-pixmap"</SourceLine>
+   <SourceLine>Types.Value( "rgb" ) = "image/x-rgb"</SourceLine>
+   <SourceLine>Types.Value( "xbm" ) = "image/x-xbitmap"</SourceLine>
+   <SourceLine>Types.Value( "xls" ) = "application/vnd.ms-excel"</SourceLine>
+   <SourceLine>Types.Value( "xpm" ) = "image/x-pixmap"</SourceLine>
+   <SourceLine>Types.Value( "xwd" ) = "image/x-xwindowdump"</SourceLine>
+   <SourceLine>Types.Value( "ico" ) = "image/vnd.microsoft.icon"</SourceLine>
+   <SourceLine>Types.Value( "docx" ) = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"</SourceLine>
+   <SourceLine>Types.Value( "pptx" ) = "application/vnd.openxmlformats-officedocument.presentationml.presentation"</SourceLine>
+   <SourceLine>Types.Value( "xlsx" ) = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"</SourceLine>
+   <SourceLine>Types.Value( "json" ) = "application/json"</SourceLine>
+   <SourceLine>Self.MimeTypes = Types</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If Self.MimeTypes.HasKey( Extension ) Then</SourceLine>
+   <SourceLine>Return Self.MimeTypes.Value( Extension )</SourceLine>
    <SourceLine>Else</SourceLine>
    <SourceLine>Return "text/plain"</SourceLine>
    <SourceLine>End If</SourceLine>
@@ -480,6 +483,104 @@
   <ItemFlags>33</ItemFlags>
   <IsShared>0</IsShared>
   <ItemParams>Name As String</ItemParams>
+  <ItemResult>String</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>StrToDate</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function StrToDate(StringDate As String) As Date</SourceLine>
+   <SourceLine>dim d as new date</SourceLine>
+   <SourceLine>//Dim StringDate As String = "2014-01-18T15:19:58+09:00"</SourceLine>
+   <SourceLine>Dim YY, MM, DD, h, m, s, Offset As String</SourceLine>
+   <SourceLine>Dim Min As Boolean = False</SourceLine>
+   <SourceLine>YY = NthField( StringDate, "-", 1 )</SourceLine>
+   <SourceLine>MM = NthField( StringDate, "-", 2 )</SourceLine>
+   <SourceLine>DD = NthField( NthField( StringDate, "-", 3 ), "T", 1 )</SourceLine>
+   <SourceLine>StringDate = NthField( StringDate, "T", 2 )</SourceLine>
+   <SourceLine>h = NthField( StringDate, ":", 1 )</SourceLine>
+   <SourceLine>m = NthField( StringDate, ":", 2 )</SourceLine>
+   <SourceLine>s = NthField( StringDate, ":", 3 )</SourceLine>
+   <SourceLine>If Instr( s, "+" ) &lt;&gt; 0 Then</SourceLine>
+   <SourceLine>Offset = NthField( s, "+", 2 )</SourceLine>
+   <SourceLine>s = NthField( s, "+", 1 )</SourceLine>
+   <SourceLine>Else</SourceLine>
+   <SourceLine>Offset = NthField( s, "-", 2 )</SourceLine>
+   <SourceLine>s = NthField( s, "-", 1 )</SourceLine>
+   <SourceLine>Min = True</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>d.Year = Val( YY )</SourceLine>
+   <SourceLine>d.Month = Val( MM )</SourceLine>
+   <SourceLine>d.Day = Val( DD )</SourceLine>
+   <SourceLine>d.Hour = Val( h )</SourceLine>
+   <SourceLine>d.Hour = Val( h )</SourceLine>
+   <SourceLine>d.Minute = Val( m )</SourceLine>
+   <SourceLine>d.Second = Val( s )</SourceLine>
+   <SourceLine>If Min = True Then</SourceLine>
+   <SourceLine>d.GMTOffset = Val( Offset ) * -1</SourceLine>
+   <SourceLine>Else</SourceLine>
+   <SourceLine>d.GMTOffset = Val( Offset )</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Return d</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>StringDate As String</ItemParams>
+  <ItemResult>Date</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>DateToStr</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function DateToStr(d As Date) As String</SourceLine>
+   <SourceLine>Dim YY, MM, DD, h, m, s, Offset As String</SourceLine>
+   <SourceLine>YY = Str( d.Year )</SourceLine>
+   <SourceLine>MM = Str( d.Month )</SourceLine>
+   <SourceLine>DD = Str( d.Day )</SourceLine>
+   <SourceLine>h = Str( d.Hour )</SourceLine>
+   <SourceLine>m = Str( d.Minute )</SourceLine>
+   <SourceLine>s = Str( d.Second )</SourceLine>
+   <SourceLine>If Len( MM ) = 1 Then</SourceLine>
+   <SourceLine>MM = "0" + MM</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If Len( DD ) = 1 Then</SourceLine>
+   <SourceLine>DD = "0" + DD</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If Len( h ) = 1 Then</SourceLine>
+   <SourceLine>h = "0" + h</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If Len( m ) = 1 Then</SourceLine>
+   <SourceLine>m = "0" + m</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If Len( s ) = 1 Then</SourceLine>
+   <SourceLine>s = "0" + s</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>MsgBox ( YY + MM + DD + h + m + s )</SourceLine>
+   <SourceLine>MsgBox( Str(d.GMTOffset ) )</SourceLine>
+   <SourceLine>Offset = Str( Abs( d.GMTOffset ) )</SourceLine>
+   <SourceLine>If Len( Offset ) = 1 Then</SourceLine>
+   <SourceLine>Offset = "0" + Offset</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If d.GMTOffset &lt; 0 Then</SourceLine>
+   <SourceLine>Offset = "-" + Offset + ":00"</SourceLine>
+   <SourceLine>Else</SourceLine>
+   <SourceLine>Offset = "+" + Offset + ":00"</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Return YY + "-" + MM + "-" + DD + "T"+ h + ":" + m + ":" + s + Offset</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>d As Date</ItemParams>
   <ItemResult>String</ItemResult>
  </Method>
  <Property>
@@ -507,7 +608,7 @@
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
   <ItemDeclaration>AccessToken As String</ItemDeclaration>
-  <ItemFlags>0</ItemFlags>
+  <ItemFlags>33</ItemFlags>
   <IsShared>0</IsShared>
  </Property>
  <Property>
@@ -516,12 +617,12 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>TokenExpires As Integer</SourceLine>
+   <SourceLine>TokenExpires As Integer = -1</SourceLine>
    <SourceLine></SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
   <ItemDeclaration>TokenExpires As Integer = -1</ItemDeclaration>
-  <ItemFlags>0</ItemFlags>
+  <ItemFlags>33</ItemFlags>
   <IsShared>0</IsShared>
  </Property>
  <Property>
@@ -535,7 +636,7 @@
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
   <ItemDeclaration>SessionID As String</ItemDeclaration>
-  <ItemFlags>0</ItemFlags>
+  <ItemFlags>33</ItemFlags>
   <IsShared>0</IsShared>
  </Property>
  <Property>
@@ -690,6 +791,20 @@
   <TextEncoding>134217984</TextEncoding>
   <ItemDeclaration>AdminScript As String = "mt.cgi"</ItemDeclaration>
   <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>MimeTypes</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>MimeTypes As Dictionary</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>MimeTypes As Dictionary</ItemDeclaration>
+  <ItemFlags>33</ItemFlags>
   <IsShared>0</IsShared>
  </Property>
  <ViewBehavior>
