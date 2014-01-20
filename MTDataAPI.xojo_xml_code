@@ -18,20 +18,32 @@
    <SourceLine>Dim Auth As Dictionary</SourceLine>
    <SourceLine>Dim AuthSocket As HTTPSocket</SourceLine>
    <SourceLine>AuthSocket = New HTTPSocket</SourceLine>
+   <SourceLine>Dim DebugBody As String</SourceLine>
    <SourceLine>// Create and populate the Auth object</SourceLine>
    <SourceLine>Auth = New Dictionary</SourceLine>
    <SourceLine>Auth.Value( "username" ) = Self.Username</SourceLine>
    <SourceLine>Auth.Value( "password" ) = Self.Password</SourceLine>
+   <SourceLine>DebugBody = "username=" + Self.Username + "&amp;password=xxxxxxxxxx&amp;"</SourceLine>
    <SourceLine>If Self.AuthRemember = True Then</SourceLine>
-   <SourceLine>Auth.Value( "remember" ) = "true"</SourceLine>
+   <SourceLine>Auth.Value( "remember" ) = "1"</SourceLine>
+   <SourceLine>DebugBody = DebugBody + "remember=1&amp;"</SourceLine>
    <SourceLine>Else</SourceLine>
-   <SourceLine>Auth.Value( "remember" ) = "false"</SourceLine>
+   <SourceLine>Auth.Value( "remember" ) = "0"</SourceLine>
+   <SourceLine>DebugBody = DebugBody + "remember=0&amp;"</SourceLine>
    <SourceLine>End If</SourceLine>
    <SourceLine>Auth.Value( "clientId" ) = Self.ClientID</SourceLine>
+   <SourceLine>DebugBody = DebugBody + "clientId=" + Self.ClientID</SourceLine>
    <SourceLine>// Setup the socket to POST format</SourceLine>
    <SourceLine>AuthSocket.SetFormData( Auth )</SourceLine>
    <SourceLine>Dim AuthJSON, AccessToken, ExpiresIn As String</SourceLine>
+   <SourceLine>Self.LastMethod = "POST"</SourceLine>
+   <SourceLine>Self.LastEndpoint = Endpoint</SourceLine>
+   <SourceLine>Self.LastRequestHeader = ""</SourceLine>
+   <SourceLine>If Self.DebugMode Then</SourceLine>
+   <SourceLine>Self.LastRequestBody = DebugBody</SourceLine>
+   <SourceLine>End If</SourceLine>
    <SourceLine>AuthJSON = AuthSocket.Post( Endpoint, Self.AuthTimeout )</SourceLine>
+   <SourceLine>Self.LastResult = AuthJSON</SourceLine>
    <SourceLine>Dim JSON As JSONItem</SourceLine>
    <SourceLine>If AuthJSON = "" Then</SourceLine>
    <SourceLine>Self.LastErrorCode = Self.UnkownError</SourceLine>
@@ -56,7 +68,7 @@
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
   <AliasName></AliasName>
-  <ItemFlags>33</ItemFlags>
+  <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
   <ItemParams></ItemParams>
   <ItemResult>String</ItemResult>
@@ -112,35 +124,16 @@
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
    <SourceLine>Function GetEntries(BlogID As Integer, Params As String, Authentication As Boolean) As JSONItem</SourceLine>
-   <SourceLine>Dim APISocket As New HTTPSocket</SourceLine>
-   <SourceLine>If Authentication = True Then</SourceLine>
-   <SourceLine>Dim Token As String = Self.GetToken</SourceLine>
-   <SourceLine>APISocket.SetRequestHeader( "X-MT-Authorization:", "MTAuth accessToken=" + Token )</SourceLine>
-   <SourceLine>End If</SourceLine>
-   <SourceLine>Dim EndPoint As String</SourceLine>
-   <SourceLine>EndPoint = Self.CGIPath + Self.DataAPIScript + "/" + Self.APIVersion + "/sites/" + Str( BlogID ) + "/entries" </SourceLine>
+   <SourceLine>Dim Request As String = "/sites/" + Str( BlogID ) + "/entries"</SourceLine>
+   <SourceLine>If Params &lt;&gt; "" Then</SourceLine>
    <SourceLine>Dim Comp As String = Str( Val( Params ) )</SourceLine>
-   <SourceLine>Dim Req As String</SourceLine>
    <SourceLine>If Comp = Params Then</SourceLine>
-   <SourceLine>// EntryID</SourceLine>
-   <SourceLine>Req = EndPoint + "/" + Params</SourceLine>
+   <SourceLine>Request = Request + "/" + Params</SourceLine>
    <SourceLine>Else</SourceLine>
-   <SourceLine>// limit=500&amp;fields=title,updatable,id,status,date,body,permalink</SourceLine>
-   <SourceLine>Req = EndPoint + "?" + Params</SourceLine>
+   <SourceLine>Request = Request + "?" + Params</SourceLine>
    <SourceLine>End If</SourceLine>
-   <SourceLine>Dim Response As String = APISocket.Get( Req, Self.GetTimeout )</SourceLine>
-   <SourceLine>Dim JSON As JSONItem</SourceLine>
-   <SourceLine>If Response = "" Then</SourceLine>
-   <SourceLine>JSON = Self.UnkownError</SourceLine>
-   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
-   <SourceLine>Return JSON</SourceLine>
    <SourceLine>End If</SourceLine>
-   <SourceLine>JSON = New JSONItem( Response )</SourceLine>
-   <SourceLine>If JSON.HasName( "error" ) Then</SourceLine>
-   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
-   <SourceLine>End If</SourceLine>
-   <SourceLine>Return JSON</SourceLine>
-   <SourceLine></SourceLine>
+   <SourceLine>Return Self.Get( Request, Authentication )</SourceLine>
    <SourceLine>End Function</SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -225,11 +218,13 @@
    <SourceLine>Dim APISocket As New HTTPSocket</SourceLine>
    <SourceLine>Dim Token As String = Self.GetToken</SourceLine>
    <SourceLine>APISocket.SetRequestHeader( "X-MT-Authorization:", "MTAuth accessToken=" + Token )</SourceLine>
+   <SourceLine>Self.LastRequestHeader = "X-MT-Authorization: MTAuth accessToken=" + Token</SourceLine>
    <SourceLine>Dim EndPoint As String</SourceLine>
    <SourceLine>EndPoint = Self.CGIPath + Self.DataAPIScript + "/" + Self.APIVersion + "/sites/" + Str( BlogID ) + "/entries" </SourceLine>
    <SourceLine>If EntryID &gt; 0 Then</SourceLine>
    <SourceLine>EndPoint = EndPoint + "/" + Str( EntryID )</SourceLine>
    <SourceLine>End If</SourceLine>
+   <SourceLine>Dim DebugBody As String</SourceLine>
    <SourceLine>Dim JSON as New JSONItem</SourceLine>
    <SourceLine>Dim i As Integer</SourceLine>
    <SourceLine>For i = 0 to Entry.Count - 1</SourceLine>
@@ -238,23 +233,23 @@
    <SourceLine>Next</SourceLine>
    <SourceLine>Dim Post As Dictionary</SourceLine>
    <SourceLine>Post = New Dictionary</SourceLine>
-   <SourceLine>Post.Value( "entry" ) = JSON.ToString</SourceLine>
    <SourceLine>If EntryID &gt; 0 Then</SourceLine>
    <SourceLine>Post.Value( "__method" ) = "PUT"</SourceLine>
+   <SourceLine>If Self.DebugMode Then</SourceLine>
+   <SourceLine>DebugBody = "__method=PUT&amp;"</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Post.Value( "entry" ) = JSON.ToString</SourceLine>
+   <SourceLine>If Self.DebugMode Then</SourceLine>
+   <SourceLine>DebugBody = "entry=" + JSON.ToString</SourceLine>
    <SourceLine>End If</SourceLine>
    <SourceLine>APISocket.SetFormData( Post )</SourceLine>
+   <SourceLine>Self.LastEndpoint = Endpoint</SourceLine>
+   <SourceLine>Self.LastMethod = "POST"</SourceLine>
+   <SourceLine>Self.LastRequestBody = DebugBody</SourceLine>
    <SourceLine>Dim Response As String = APISocket.Post( Endpoint, Self.PostTimeout )</SourceLine>
-   <SourceLine>If Response = "" Then</SourceLine>
-   <SourceLine>JSON = Self.UnkownError</SourceLine>
-   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
-   <SourceLine>Return JSON</SourceLine>
-   <SourceLine>End If</SourceLine>
-   <SourceLine>JSON = New JSONItem( Response )</SourceLine>
-   <SourceLine>If JSON.HasName( "error" ) Then</SourceLine>
-   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
-   <SourceLine>Return JSON</SourceLine>
-   <SourceLine>End If</SourceLine>
-   <SourceLine>Return JSON</SourceLine>
+   <SourceLine>Self.LastResult = Response</SourceLine>
+   <SourceLine>Return toJSONItem( Response )</SourceLine>
    <SourceLine>End Function</SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -295,9 +290,10 @@
    <SourceLine>Dim APISocket As new HttpSocket</SourceLine>
    <SourceLine>Dim Token As String = Self.GetToken</SourceLine>
    <SourceLine>APISocket.SetRequestHeader( "X-MT-Authorization:", "MTAuth accessToken=" + Token )</SourceLine>
+   <SourceLine>Self.LastRequestHeader = "X-MT-Authorization: MTAuth accessToken=" + Token</SourceLine>
    <SourceLine>Dim EndPoint As String</SourceLine>
    <SourceLine>EndPoint = Self.CGIPath + Self.DataAPIScript + "/" + Self.APIVersion + "/sites/" + Str( BlogID ) + "/assets/upload"</SourceLine>
-   <SourceLine>Dim Data, Rawdata, nl, EncodedFileName As String</SourceLine>
+   <SourceLine>Dim Data, Rawdata, nl, EncodedFileName, DebugBody As String</SourceLine>
    <SourceLine>Const boundary = "--------0xKhTmLbOuNdArY"</SourceLine>
    <SourceLine>nl = chr( 13 ) + chr( 10 )</SourceLine>
    <SourceLine>Dim bs As BinaryStream</SourceLine>
@@ -305,12 +301,10 @@
    <SourceLine>rawdata = bs.Read( File.Length )</SourceLine>
    <SourceLine>EncodedFileName = EncodeURLComponent( File.Name )</SourceLine>
    <SourceLine>Dim MimeType As String = Self.GetMimeType( File.Name )</SourceLine>
-   <SourceLine>Data="--" + boundary + nl</SourceLine>
-   <SourceLine>Data = Data + _</SourceLine>
-   <SourceLine>"Content-Disposition: form-data; name=""filename""" + nl + nl + _</SourceLine>
-   <SourceLine>EncodedFileName + nl</SourceLine>
-   <SourceLine>Data = Data + _</SourceLine>
-   <SourceLine>"--" + boundary + nl</SourceLine>
+   <SourceLine>Data = "--" + boundary + nl</SourceLine>
+   <SourceLine>If Self.DebugMode = True Then</SourceLine>
+   <SourceLine>DebugBody = "--" + boundary + Chr( 13 ) </SourceLine>
+   <SourceLine>End If</SourceLine>
    <SourceLine>If Rename = True Then</SourceLine>
    <SourceLine>Data = Data + _</SourceLine>
    <SourceLine>"Content-Disposition: form-data; name=""autoRenameIfExists""" + nl + nl + _</SourceLine>
@@ -332,6 +326,9 @@
    <SourceLine>Data = Data + _</SourceLine>
    <SourceLine>"--" + boundary + nl</SourceLine>
    <SourceLine>End If</SourceLine>
+   <SourceLine>If Self.DebugMode = True Then</SourceLine>
+   <SourceLine>DebugBody = ReplaceAll( Data, nl, Chr( 13 ) )</SourceLine>
+   <SourceLine>End If</SourceLine>
    <SourceLine>Data = Data + _</SourceLine>
    <SourceLine>"Content-Disposition: form-data; name=""file""; filename=""" + _</SourceLine>
    <SourceLine>EncodedFileName + """" + nl +_</SourceLine>
@@ -341,21 +338,25 @@
    <SourceLine>nl + Rawdata + nl</SourceLine>
    <SourceLine>Data = Data + _</SourceLine>
    <SourceLine>"--" + boundary + nl + nl</SourceLine>
+   <SourceLine>If Self.DebugMode = True Then</SourceLine>
+   <SourceLine>DebugBody = DebugBody + _</SourceLine>
+   <SourceLine>"Content-Disposition: form-data; name=""file""; filename=""" + _</SourceLine>
+   <SourceLine>EncodedFileName + """" + Chr( 13 ) +_</SourceLine>
+   <SourceLine>"Content-Type: " + MimeType + Chr( 13 ) + _</SourceLine>
+   <SourceLine>"Content-Length: " + Str( LenB( Rawdata ) ) + Chr( 13 ) + _</SourceLine>
+   <SourceLine>"Content-Transfer-Encoding: binary" + Chr( 13 ) + _</SourceLine>
+   <SourceLine>Chr( 13 ) + "&lt;--FileData--&gt;" + Chr( 13 ) + "--" + boundary + Chr( 13 )</SourceLine>
+   <SourceLine>End If</SourceLine>
    <SourceLine>APISocket.yield = true</SourceLine>
    <SourceLine>APISocket.SetRequestContent Data, "multipart/form-data, boundary=" + boundary</SourceLine>
+   <SourceLine>Self.LastEndpoint = Endpoint</SourceLine>
+   <SourceLine>Self.LastMethod = "POST"</SourceLine>
+   <SourceLine>If Self.DebugMode = True Then</SourceLine>
+   <SourceLine>Self.LastRequestBody = "Content-type: multipart/form-data, boundary=" + boundary +  chr( 13 ) + chr( 13 ) + DebugBody</SourceLine>
+   <SourceLine>End If</SourceLine>
    <SourceLine>Dim Response As String = APISocket.post( EndPoint, Self.PostTimeout )</SourceLine>
-   <SourceLine>Dim JSON As JSONItem</SourceLine>
-   <SourceLine>If Response = "" Then</SourceLine>
-   <SourceLine>JSON = Self.UnkownError</SourceLine>
-   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
-   <SourceLine>Return JSON</SourceLine>
-   <SourceLine>End If</SourceLine>
-   <SourceLine>JSON = New JSONItem( Response )</SourceLine>
-   <SourceLine>If JSON.HasName( "error" ) Then</SourceLine>
-   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
-   <SourceLine>Return JSON</SourceLine>
-   <SourceLine>End If</SourceLine>
-   <SourceLine>Return JSON</SourceLine>
+   <SourceLine>Self.LastResult = Response</SourceLine>
+   <SourceLine>Return toJSONItem( Response )</SourceLine>
    <SourceLine>End Function</SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -583,6 +584,160 @@
   <ItemParams>d As Date</ItemParams>
   <ItemResult>String</ItemResult>
  </Method>
+ <Method>
+  <ItemName>GetBlogs</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function GetBlogs(AuthorID As Integer, Params As String, Authentication As Boolean) As JSONItem</SourceLine>
+   <SourceLine>Dim Request As String = "/users/"</SourceLine>
+   <SourceLine>If AuthorID = 0 Then</SourceLine>
+   <SourceLine>Request = Request + "me/sites"</SourceLine>
+   <SourceLine>Else</SourceLine>
+   <SourceLine>Request = Request + Str( AuthorID ) + "/sites"</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If Params &lt;&gt; "" Then</SourceLine>
+   <SourceLine>Request = Request + "?" + Params</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Return Self.Get( Request, Authentication )</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>AuthorID As Integer, Params As String, Authentication As Boolean</ItemParams>
+  <ItemResult>JSONItem</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>GetBlog</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function GetBlog(BlogID As Integer,Params As String, Authentication As Boolean) As JSONItem</SourceLine>
+   <SourceLine>Dim Request As String = "/sites/" + Str( BlogID )</SourceLine>
+   <SourceLine>If Params &lt;&gt; "" Then</SourceLine>
+   <SourceLine>Request = Request + "?" + Params</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Return Self.Get( Request, Authentication )</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>BlogID As Integer,Params As String, Authentication As Boolean</ItemParams>
+  <ItemResult>JSONItem</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>Get</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function Get(Request As String, Authentication As Boolean) As JSONItem</SourceLine>
+   <SourceLine>Dim APISocket As New HTTPSocket</SourceLine>
+   <SourceLine>Dim Token As String = Self.GetToken</SourceLine>
+   <SourceLine>If Authentication = True Then</SourceLine>
+   <SourceLine>APISocket.SetRequestHeader( "X-MT-Authorization:", "MTAuth accessToken=" + Token )</SourceLine>
+   <SourceLine>Self.LastRequestHeader = "X-MT-Authorization: MTAuth accessToken=" + Token</SourceLine>
+   <SourceLine>Else</SourceLine>
+   <SourceLine>Self.LastRequestHeader = ""</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If LeftB( Request, 1 ) &lt;&gt; "/" Then</SourceLine>
+   <SourceLine>Request = "/" + Request</SourceLine>
+   <SourceLine>End If </SourceLine>
+   <SourceLine>Request = Self.CGIPath + Self.DataAPIScript + "/" + Self.APIVersion + Request</SourceLine>
+   <SourceLine>Self.LastEndpoint = Request</SourceLine>
+   <SourceLine>Self.LastMethod = "GET"</SourceLine>
+   <SourceLine>Dim Response As String = APISocket.Get( Request, Self.GetTimeout )</SourceLine>
+   <SourceLine>Self.LastResult = Response</SourceLine>
+   <SourceLine>Return toJSONItem( Response )</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>Request As String, Authentication As Boolean</ItemParams>
+  <ItemResult>JSONItem</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>toJSONItem</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function toJSONItem(Response As String) As JSONItem</SourceLine>
+   <SourceLine>Dim JSON As JSONItem</SourceLine>
+   <SourceLine>If Response = "" Then</SourceLine>
+   <SourceLine>JSON = Self.UnkownError</SourceLine>
+   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
+   <SourceLine>Return JSON</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>JSON = New JSONItem( Response )</SourceLine>
+   <SourceLine>If JSON.HasName( "error" ) Then</SourceLine>
+   <SourceLine>Self.LastErrorCode = JSON</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Return JSON</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>33</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>Response As String</ItemParams>
+  <ItemResult>JSONItem</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>GetUser</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function GetUser(AuthorID As Integer,Params As String) As JSONItem</SourceLine>
+   <SourceLine>Dim Request As String = "/users/"</SourceLine>
+   <SourceLine>If AuthorID = 0 Then</SourceLine>
+   <SourceLine>Request = Request + "me"</SourceLine>
+   <SourceLine>Else</SourceLine>
+   <SourceLine>Request = Request + Str( AuthorID )</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If Params &lt;&gt; "" Then</SourceLine>
+   <SourceLine>Request = Request + "?" + Params</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Return Self.Get( Request, True )</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>AuthorID As Integer,Params As String</ItemParams>
+  <ItemResult>JSONItem</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>GetCategories</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function GetCategories(BlogID As Integer, Params As String, Authentication As Boolean) As JSONItem</SourceLine>
+   <SourceLine>Dim Request As String = "/sites/" + Str( BlogID ) + "/categories"</SourceLine>
+   <SourceLine>If Params &lt;&gt; "" Then</SourceLine>
+   <SourceLine>Request = Request + "?" + Params</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Return Self.Get( Request, Authentication )</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>BlogID As Integer, Params As String, Authentication As Boolean</ItemParams>
+  <ItemResult>JSONItem</ItemResult>
+ </Method>
  <Property>
   <ItemName>LastErrorCode</ItemName>
   <Compatibility></Compatibility>
@@ -617,7 +772,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>TokenExpires As Integer = -1</SourceLine>
+   <SourceLine>TokenExpires As Integer</SourceLine>
    <SourceLine></SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -645,7 +800,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>DataAPIScript As String = "mt-data-api.cgi"</SourceLine>
+   <SourceLine>DataAPIScript As String</SourceLine>
    <SourceLine></SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -659,7 +814,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>CGIPath As String = "http://localhost/cgi-bin/mt/"</SourceLine>
+   <SourceLine>CGIPath As String</SourceLine>
    <SourceLine></SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -687,7 +842,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>APIVersion As String = "v1"</SourceLine>
+   <SourceLine>APIVersion As String</SourceLine>
    <SourceLine></SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -715,7 +870,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>ClientID As String = "Xojo"</SourceLine>
+   <SourceLine>ClientID As String</SourceLine>
    <SourceLine></SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -729,7 +884,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>UserName As String = "Melody"</SourceLine>
+   <SourceLine>UserName As String</SourceLine>
    <SourceLine></SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -743,7 +898,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>Password As String = "Nelson"</SourceLine>
+   <SourceLine>Password As String</SourceLine>
    <SourceLine></SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -785,7 +940,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>AdminScript As String = "mt.cgi"</SourceLine>
+   <SourceLine>AdminScript As String</SourceLine>
    <SourceLine></SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -805,6 +960,90 @@
   <TextEncoding>134217984</TextEncoding>
   <ItemDeclaration>MimeTypes As Dictionary</ItemDeclaration>
   <ItemFlags>33</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>LastEndpoint</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>LastEndpoint As String</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>LastEndpoint As String</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>LastMethod</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>LastMethod As String</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>LastMethod As String</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>LastResult</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>LastResult As String</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>LastResult As String</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>LastRequestBody</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>LastRequestBody As String</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>LastRequestBody As String</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>DebugMode</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>DebugMode As Boolean</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>DebugMode As Boolean</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>LastRequestHeader</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>LastRequestHeader As String</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>LastRequestHeader As String</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
  </Property>
  <ViewBehavior>
@@ -842,32 +1081,18 @@
    <ItemType>Integer</ItemType>
   </ViewProperty>
   <ViewProperty>
-   <ObjName>AccessToken</ObjName>
-   <PropertyGroup>Behavior</PropertyGroup>
-   <ItemType>String</ItemType>
-  </ViewProperty>
-  <ViewProperty>
-   <ObjName>TokenExpires</ObjName>
-   <PropertyGroup>Behavior</PropertyGroup>
-   <PropertyValue>-1</PropertyValue>
-   <ItemType>Integer</ItemType>
-  </ViewProperty>
-  <ViewProperty>
-   <ObjName>SessionID</ObjName>
-   <PropertyGroup>Behavior</PropertyGroup>
-   <ItemType>String</ItemType>
-  </ViewProperty>
-  <ViewProperty>
    <ObjName>DataAPIScript</ObjName>
    <PropertyGroup>Behavior</PropertyGroup>
    <PropertyValue>mt-data-api.cgi</PropertyValue>
    <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
   </ViewProperty>
   <ViewProperty>
    <ObjName>CGIPath</ObjName>
    <PropertyGroup>Behavior</PropertyGroup>
    <PropertyValue>http://localhost/cgi-bin/mt/</PropertyValue>
    <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
   </ViewProperty>
   <ViewProperty>
    <ObjName>AuthTimeout</ObjName>
@@ -880,6 +1105,7 @@
    <PropertyGroup>Behavior</PropertyGroup>
    <PropertyValue>v1</PropertyValue>
    <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
   </ViewProperty>
   <ViewProperty>
    <ObjName>AuthRemember</ObjName>
@@ -892,16 +1118,21 @@
    <PropertyGroup>Behavior</PropertyGroup>
    <PropertyValue>Xojo</PropertyValue>
    <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
   </ViewProperty>
   <ViewProperty>
    <ObjName>UserName</ObjName>
    <PropertyGroup>Behavior</PropertyGroup>
+   <PropertyValue>Melody</PropertyValue>
    <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
   </ViewProperty>
   <ViewProperty>
    <ObjName>Password</ObjName>
    <PropertyGroup>Behavior</PropertyGroup>
+   <PropertyValue>Nelson</PropertyValue>
    <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
   </ViewProperty>
   <ViewProperty>
    <ObjName>GetTimeout</ObjName>
@@ -920,6 +1151,42 @@
    <PropertyGroup>Behavior</PropertyGroup>
    <PropertyValue>mt.cgi</PropertyValue>
    <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>LastEndpoint</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>LastMethod</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>LastResult</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>LastRequestBody</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>DebugMode</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <ItemType>Boolean</ItemType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>LastRequestHeader</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
   </ViewProperty>
  </ViewBehavior>
 </block>
