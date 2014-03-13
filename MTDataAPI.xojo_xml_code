@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<RBProject version="2013r4.1" FormatVersion="2" MinIDEVersion="20070100">
-<block type="Module" ID="764900430">
+<RBProject version="2014r1" FormatVersion="2" MinIDEVersion="20070100">
+<block type="Module" ID="408627812">
  <ObjName>MTDataAPI</ObjName>
  <ObjContainerID>0</ObjContainerID>
  <IsClass>1</IsClass>
@@ -45,6 +45,7 @@
    <SourceLine>End If</SourceLine>
    <SourceLine>Dim Headers As New InternetHeaders</SourceLine>
    <SourceLine>AuthJSON = AuthSocket.Post( Endpoint, Self.AuthTimeout )</SourceLine>
+   <SourceLine>Self.LastHTTPStatusCode = AuthSocket.HTTPStatusCode</SourceLine>
    <SourceLine>LastAction = "Authentication"</SourceLine>
    <SourceLine>Self.LastResult = AuthJSON</SourceLine>
    <SourceLine>Dim JSON As JSONItem</SourceLine>
@@ -58,7 +59,7 @@
    <SourceLine>End If</SourceLine>
    <SourceLine>Headers = AuthSocket.PageHeaders</SourceLine>
    <SourceLine>Dim HeaderSource As String = Headers.Source</SourceLine>
-   <SourceLine>Self.LastResponseHeader = SplitB( HeaderSource, Chr( 13 ) + Chr( 10 ) )</SourceLine>
+   <SourceLine>Self.LastResponseHeader = SplitB( HeaderSource, Chr( 10 ) + Chr( 10 ) )</SourceLine>
    <SourceLine>JSON = New JSONItem( AuthJSON )</SourceLine>
    <SourceLine>If JSON.HasName( "error" ) Then</SourceLine>
    <SourceLine>Self.LastErrorCode = JSON</SourceLine>
@@ -191,7 +192,7 @@
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
    <SourceLine>Function NewEntry(BlogID As Integer, Entry As JSONItem) As JSONItem</SourceLine>
-   <SourceLine>Return Self.UpdateEntry( BlogID, 0, Entry )</SourceLine>
+   <SourceLine>Return Self.UpdateEntry( BlogID, Entry, 0 )</SourceLine>
    <SourceLine>End Function</SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -232,7 +233,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>Function UpdateEntry(BlogID As Integer, EntryID As Integer, Entry As JSONItem) As JSONItem</SourceLine>
+   <SourceLine>Function UpdateEntry(BlogID As Integer, Entry As JSONItem, EntryID As Integer = 0) As JSONItem</SourceLine>
    <SourceLine>Dim APISocket As New HTTPSocket</SourceLine>
    <SourceLine>Dim Token As String = Self.GetToken</SourceLine>
    <SourceLine>Self.InitRequest</SourceLine>
@@ -247,14 +248,23 @@
    <SourceLine>Dim Post As Dictionary</SourceLine>
    <SourceLine>Post = New Dictionary</SourceLine>
    <SourceLine>If EntryID &gt; 0 Then</SourceLine>
+   <SourceLine>If Entry &lt;&gt; Nil Then</SourceLine>
    <SourceLine>Post.Value( "__method" ) = "PUT"</SourceLine>
    <SourceLine>If Self.DebugMode Then</SourceLine>
    <SourceLine>DebugBody = "__method=PUT&amp;"</SourceLine>
    <SourceLine>End If</SourceLine>
+   <SourceLine>Else</SourceLine>
+   <SourceLine>Post.Value( "__method" ) = "DELETE"</SourceLine>
+   <SourceLine>If Self.DebugMode Then</SourceLine>
+   <SourceLine>DebugBody = "__method=DELETE"</SourceLine>
    <SourceLine>End If</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>If Entry &lt;&gt; Nil Then</SourceLine>
    <SourceLine>Post.Value( "entry" ) = Entry.ToString</SourceLine>
    <SourceLine>If Self.DebugMode Then</SourceLine>
    <SourceLine>DebugBody = "entry=" + Entry.ToString</SourceLine>
+   <SourceLine>End If</SourceLine>
    <SourceLine>End If</SourceLine>
    <SourceLine>APISocket.SetFormData( Post )</SourceLine>
    <SourceLine>Self.LastRequestURL = Endpoint</SourceLine>
@@ -262,6 +272,7 @@
    <SourceLine>Self.LastRequestBody = DebugBody</SourceLine>
    <SourceLine>Dim Headers As New InternetHeaders</SourceLine>
    <SourceLine>Dim Response As String = APISocket.Post( Endpoint, Self.PostTimeout )</SourceLine>
+   <SourceLine>Self.LastHTTPStatusCode = APISocket.HTTPStatusCode</SourceLine>
    <SourceLine>If EntryID &gt; 0 Then</SourceLine>
    <SourceLine>LastAction = "UpdateEntry"</SourceLine>
    <SourceLine>Else</SourceLine>
@@ -276,7 +287,7 @@
    <SourceLine>End If</SourceLine>
    <SourceLine>Headers = APISocket.PageHeaders</SourceLine>
    <SourceLine>Dim HeaderSource As String = Headers.Source</SourceLine>
-   <SourceLine>Self.LastResponseHeader = SplitB( HeaderSource, Chr( 13 ) + Chr( 10 ) )</SourceLine>
+   <SourceLine>Self.LastResponseHeader = SplitB( HeaderSource, Chr( 10 ) + Chr( 10 ) )</SourceLine>
    <SourceLine>Self.LastResult = Response</SourceLine>
    <SourceLine>Return toJSONItem( Response )</SourceLine>
    <SourceLine>End Function</SourceLine>
@@ -285,7 +296,7 @@
   <AliasName></AliasName>
   <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
-  <ItemParams>BlogID As Integer, EntryID As Integer, Entry As JSONItem</ItemParams>
+  <ItemParams>BlogID As Integer, Entry As JSONItem, EntryID As Integer = 0</ItemParams>
   <ItemResult>JSONItem</ItemResult>
  </Method>
  <Method>
@@ -311,7 +322,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>Function UploadAsset(BlogID As Integer, File As FolderItem, Path As String, Rename As Boolean, Normarize As Boolean) As JSONItem</SourceLine>
+   <SourceLine>Function UploadAsset(BlogID As Integer, File As FolderItem, Path As String = "", Rename As Boolean = False, Normarize As Boolean = True) As JSONItem</SourceLine>
    <SourceLine>If File = Nil Then</SourceLine>
    <SourceLine>Self.LastErrorCode = Self.UnkownError</SourceLine>
    <SourceLine>Return Self.LastErrorCode</SourceLine>
@@ -333,7 +344,7 @@
    <SourceLine>Dim MimeType As String = Self.GetMimeType( File.Name )</SourceLine>
    <SourceLine>Data = "--" + boundary + nl</SourceLine>
    <SourceLine>If Self.DebugMode = True Then</SourceLine>
-   <SourceLine>DebugBody = "--" + boundary + Chr( 13 ) </SourceLine>
+   <SourceLine>DebugBody = "--" + boundary + Chr( 13 )</SourceLine>
    <SourceLine>End If</SourceLine>
    <SourceLine>If Rename = True Then</SourceLine>
    <SourceLine>Data = Data + _</SourceLine>
@@ -386,6 +397,7 @@
    <SourceLine>End If</SourceLine>
    <SourceLine>Dim Headers As New InternetHeaders</SourceLine>
    <SourceLine>Dim Response As String = APISocket.Post( EndPoint, Self.PostTimeout )</SourceLine>
+   <SourceLine>Self.LastHTTPStatusCode = APISocket.HTTPStatusCode</SourceLine>
    <SourceLine>LastAction = "UploadAsset"</SourceLine>
    <SourceLine>If CheckJSON( Response ) = False Then</SourceLine>
    <SourceLine>Dim Error As JSONItem</SourceLine>
@@ -405,7 +417,7 @@
   <AliasName></AliasName>
   <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
-  <ItemParams>BlogID As Integer, File As FolderItem, Path As String, Rename As Boolean, Normarize As Boolean</ItemParams>
+  <ItemParams>BlogID As Integer, File As FolderItem, Path As String = "", Rename As Boolean = False, Normarize As Boolean = True</ItemParams>
   <ItemResult>JSONItem</ItemResult>
  </Method>
  <Method>
@@ -502,6 +514,7 @@
    <SourceLine>Types.Value( "pbm" ) = "image/x-portable-bitmap"</SourceLine>
    <SourceLine>Types.Value( "pgm" ) = "image/x-portable-graymap"</SourceLine>
    <SourceLine>Types.Value( "ppm" ) = "image/x-portable-pixmap"</SourceLine>
+   <SourceLine>Types.Value( "psd" ) = " image/x-photoshop"</SourceLine>
    <SourceLine>Types.Value( "rgb" ) = "image/x-rgb"</SourceLine>
    <SourceLine>Types.Value( "xbm" ) = "image/x-xbitmap"</SourceLine>
    <SourceLine>Types.Value( "xls" ) = "application/vnd.ms-excel"</SourceLine>
@@ -523,7 +536,7 @@
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
   <AliasName></AliasName>
-  <ItemFlags>33</ItemFlags>
+  <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
   <ItemParams>Name As String</ItemParams>
   <ItemResult>String</ItemResult>
@@ -605,8 +618,6 @@
    <SourceLine>If Len( s ) = 1 Then</SourceLine>
    <SourceLine>s = "0" + s</SourceLine>
    <SourceLine>End If</SourceLine>
-   <SourceLine>MsgBox ( YY + MM + DD + h + m + s )</SourceLine>
-   <SourceLine>MsgBox( Str(d.GMTOffset ) )</SourceLine>
    <SourceLine>Offset = Str( Abs( d.GMTOffset ) )</SourceLine>
    <SourceLine>If Len( Offset ) = 1 Then</SourceLine>
    <SourceLine>Offset = "0" + Offset</SourceLine>
@@ -632,7 +643,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>Function GetBlogs(AuthorID As Integer, Params As String, Authentication As Boolean) As JSONItem</SourceLine>
+   <SourceLine>Function GetBlogs(AuthorID As Integer = 0, Params As String = "", Authentication As Boolean = True) As JSONItem</SourceLine>
    <SourceLine>Dim Request As String = "/users/"</SourceLine>
    <SourceLine>If AuthorID = 0 Then</SourceLine>
    <SourceLine>Request = Request + "me/sites"</SourceLine>
@@ -649,7 +660,7 @@
   <AliasName></AliasName>
   <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
-  <ItemParams>AuthorID As Integer, Params As String, Authentication As Boolean</ItemParams>
+  <ItemParams>AuthorID As Integer = 0, Params As String = "", Authentication As Boolean = True</ItemParams>
   <ItemResult>JSONItem</ItemResult>
  </Method>
  <Method>
@@ -658,7 +669,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>Function GetBlog(BlogID As Integer,Params As String, Authentication As Boolean) As JSONItem</SourceLine>
+   <SourceLine>Function GetBlog(BlogID As Integer, Params As String = "", Authentication As Boolean = True) As JSONItem</SourceLine>
    <SourceLine>Dim Request As String = "/sites/" + Str( BlogID )</SourceLine>
    <SourceLine>If Params &lt;&gt; "" Then</SourceLine>
    <SourceLine>Request = Request + "?" + Params</SourceLine>
@@ -670,7 +681,7 @@
   <AliasName></AliasName>
   <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
-  <ItemParams>BlogID As Integer,Params As String, Authentication As Boolean</ItemParams>
+  <ItemParams>BlogID As Integer, Params As String = "", Authentication As Boolean = True</ItemParams>
   <ItemResult>JSONItem</ItemResult>
  </Method>
  <Method>
@@ -714,7 +725,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>Function GetUser(AuthorID As Integer,Params As String) As JSONItem</SourceLine>
+   <SourceLine>Function GetUser(AuthorID As Integer = 0, Params As String = "") As JSONItem</SourceLine>
    <SourceLine>Dim Request As String = "/users/"</SourceLine>
    <SourceLine>If AuthorID = 0 Then</SourceLine>
    <SourceLine>Request = Request + "me"</SourceLine>
@@ -731,7 +742,7 @@
   <AliasName></AliasName>
   <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
-  <ItemParams>AuthorID As Integer,Params As String</ItemParams>
+  <ItemParams>AuthorID As Integer = 0, Params As String = ""</ItemParams>
   <ItemResult>JSONItem</ItemResult>
  </Method>
  <Method>
@@ -761,7 +772,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>Function Post(Request As String, Params As String, Authentication As Boolean) As JSONItem</SourceLine>
+   <SourceLine>Function Post(Request As String, Params As String, Authentication As Boolean = True) As JSONItem</SourceLine>
    <SourceLine>Dim APISocket As New HTTPSocket</SourceLine>
    <SourceLine>If Authentication = True Then</SourceLine>
    <SourceLine>Dim Token As String = Self.GetToken</SourceLine>
@@ -793,6 +804,7 @@
    <SourceLine>End If</SourceLine>
    <SourceLine>Dim Headers As New InternetHeaders</SourceLine>
    <SourceLine>Dim Response As String = APISocket.Post( Request, Self.PostTimeout )</SourceLine>
+   <SourceLine>Self.LastHTTPStatusCode = APISocket.HTTPStatusCode</SourceLine>
    <SourceLine>LastAction = "Post"</SourceLine>
    <SourceLine>If CheckJSON( Response ) = False Then</SourceLine>
    <SourceLine>Dim Error As JSONItem</SourceLine>
@@ -803,7 +815,7 @@
    <SourceLine>End If</SourceLine>
    <SourceLine>Headers = APISocket.PageHeaders</SourceLine>
    <SourceLine>Dim HeaderSource As String = Headers.Source</SourceLine>
-   <SourceLine>Self.LastResponseHeader = SplitB( HeaderSource, Chr( 13 ) + Chr( 10 ) )</SourceLine>
+   <SourceLine>Self.LastResponseHeader = SplitB( HeaderSource, Chr( 10 ) + Chr( 10 ) )</SourceLine>
    <SourceLine>Self.LastResult = Response</SourceLine>
    <SourceLine>Return toJSONItem( Response )</SourceLine>
    <SourceLine>End Function</SourceLine>
@@ -812,7 +824,7 @@
   <AliasName></AliasName>
   <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
-  <ItemParams>Request As String, Params As String, Authentication As Boolean</ItemParams>
+  <ItemParams>Request As String, Params As String, Authentication As Boolean = True</ItemParams>
   <ItemResult>JSONItem</ItemResult>
  </Method>
  <Method>
@@ -830,6 +842,8 @@
    <SourceLine>Self.LastRequestBody = ""</SourceLine>
    <SourceLine>Self.LastMethod = ""</SourceLine>
    <SourceLine>Self.LastResponseHeader = Nil</SourceLine>
+   <SourceLine>Self.LastHTTPStatusCode = 0</SourceLine>
+   <SourceLine>Self.Cache = New Dictionary</SourceLine>
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -845,7 +859,7 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>Function Get(Request As String, Authentication As Boolean) As JSONItem</SourceLine>
+   <SourceLine>Function Get(Request As String, Authentication As Boolean = True) As JSONItem</SourceLine>
    <SourceLine>Dim APISocket As New HTTPSocket</SourceLine>
    <SourceLine>If Authentication = True Then</SourceLine>
    <SourceLine>Dim Token As String = Self.GetToken</SourceLine>
@@ -863,6 +877,7 @@
    <SourceLine>Self.LastMethod = "GET"</SourceLine>
    <SourceLine>Dim Headers As New InternetHeaders</SourceLine>
    <SourceLine>Dim Response As String = APISocket.Get( Request, Self.GetTimeout )</SourceLine>
+   <SourceLine>Self.LastHTTPStatusCode = APISocket.HTTPStatusCode</SourceLine>
    <SourceLine>LastAction = "Get"</SourceLine>
    <SourceLine>If CheckJSON( Response ) = False Then</SourceLine>
    <SourceLine>Dim Error As JSONItem</SourceLine>
@@ -873,8 +888,9 @@
    <SourceLine>End If</SourceLine>
    <SourceLine>Headers = APISocket.PageHeaders</SourceLine>
    <SourceLine>Dim HeaderSource As String = Headers.Source</SourceLine>
-   <SourceLine>Self.LastResponseHeader = SplitB( HeaderSource, Chr( 13 ) + Chr( 10 ) )</SourceLine>
+   <SourceLine>Self.LastResponseHeader = SplitB( HeaderSource, Chr( 10 ) + Chr( 10 ) )</SourceLine>
    <SourceLine>Self.LastResult = Response</SourceLine>
+   <SourceLine>Cache.Value( "Request" ) = Response</SourceLine>
    <SourceLine>Return toJSONItem( Response )</SourceLine>
    <SourceLine>End Function</SourceLine>
   </ItemSource>
@@ -882,7 +898,7 @@
   <AliasName></AliasName>
   <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
-  <ItemParams>Request As String, Authentication As Boolean</ItemParams>
+  <ItemParams>Request As String, Authentication As Boolean = True</ItemParams>
   <ItemResult>JSONItem</ItemResult>
  </Method>
  <Method>
@@ -930,6 +946,38 @@
   <IsShared>0</IsShared>
   <ItemParams></ItemParams>
   <ItemResult></ItemResult>
+ </Method>
+ <Method>
+  <ItemName>GetFileTypes</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function GetFileTypes(Files() As String, ItemSeparator As String = ";") As String</SourceLine>
+   <SourceLine>Dim i, j As Integer</SourceLine>
+   <SourceLine>Dim Items() As String</SourceLine>
+   <SourceLine>For i = 0 To UBound( Files )</SourceLine>
+   <SourceLine>Dim Type As String = GetMimeType( Files( i ) )</SourceLine>
+   <SourceLine>Dim Match As Boolean = False</SourceLine>
+   <SourceLine>For j = 0 To UBound( Items )</SourceLine>
+   <SourceLine>If Items( j ) = Type Then</SourceLine>
+   <SourceLine>Match = True</SourceLine>
+   <SourceLine>Continue</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Next</SourceLine>
+   <SourceLine>If Match = False Then</SourceLine>
+   <SourceLine>Items.Append( GetMimeType( Files( i ) ) )</SourceLine>
+   <SourceLine>End If</SourceLine>
+   <SourceLine>Next</SourceLine>
+   <SourceLine>Return Join( Items, ItemSeparator )</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams>Files() As String, ItemSeparator As String = ";"</ItemParams>
+  <ItemResult>String</ItemResult>
  </Method>
  <Property>
   <ItemName>LastErrorCode</ItemName>
@@ -1281,6 +1329,34 @@
   <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
  </Property>
+ <Property>
+  <ItemName>LastHTTPStatusCode</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>LastHTTPStatusCode As Integer</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>LastHTTPStatusCode As Integer</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
+ <Property>
+  <ItemName>Cache</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Cache As Dictionary</SourceLine>
+   <SourceLine></SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemDeclaration>Cache As Dictionary</ItemDeclaration>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+ </Property>
  <ViewBehavior>
   <ViewProperty>
    <ObjName>Name</ObjName>
@@ -1428,6 +1504,17 @@
    <PropertyGroup>Behavior</PropertyGroup>
    <ItemType>String</ItemType>
    <EditorType>MultiLineEditor</EditorType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>LastAction</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>LastHTTPStatusCode</ObjName>
+   <PropertyGroup>Behavior</PropertyGroup>
+   <ItemType>Integer</ItemType>
   </ViewProperty>
  </ViewBehavior>
 </block>
